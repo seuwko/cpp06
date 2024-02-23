@@ -20,7 +20,8 @@ ScalarConverter::~ScalarConverter(void)
 
 ScalarConverter &ScalarConverter::operator=(ScalarConverter const &copy)
 {
-	(void)copy;
+	if (this != &copy)
+		return (*this);
 	return (*this);
 }
 
@@ -72,8 +73,16 @@ void ScalarConverter::printFloat(float f)
 		std::cout << "int: " << pIn << std::endl;
 	}
 	pDo = static_cast<double>(f);
-	std::cout << "float: " << std::fixed << std::setprecision(1) << f << "f" << std::endl;
-	std::cout << "double: " << std::fixed << std::setprecision(1) << pDo << std::endl;
+	if (floor(f) == f)
+	{
+		std::cout << "float: " << std::fixed << std::setprecision(1) << f << "f" << std::endl;
+		std::cout << "double: " << std::fixed << std::setprecision(1) << pDo << std::endl;
+	}
+	else
+	{
+		std::cout << "float: " << f << "f" << std::endl;
+		std::cout << "double: " << pDo << std::endl;
+	}
 }
 
 void ScalarConverter::printDouble(double d)
@@ -99,9 +108,15 @@ void ScalarConverter::printDouble(double d)
 	else
 	{
 		pFl = static_cast<float>(d);
-		std::cout << "float: " << std::fixed << std::setprecision(1) << pFl << "f" << std::endl;
+		if (floor(d) == d)
+			std::cout << "float: " << std::fixed << std::setprecision(1) << pFl << "f" << std::endl;
+		else
+			std::cout << "float: " << pFl << "f" << std::endl;
 	}
-	std::cout << "double: " << std::fixed << std::setprecision(1) << d << std::endl;
+	if (floor(d) == d)
+		std::cout << "double: " << std::fixed << std::setprecision(1) << d << std::endl;
+	else
+		std::cout << "double: " << d << std::endl;
 }
 
 void ScalarConverter::printImpossible(void)
@@ -161,7 +176,7 @@ bool ScalarConverter::checkStr(char *s)
 				else
 					isDot = true;
 			}
-			else if (!isE && s[i] == 'e' && (s[i + 1] == '+' || s[i + 1] == '-'))
+			else if (isDot && !isE && s[i] == 'e' && (s[i + 1] == '+' || s[i + 1] == '-'))
 			{
 				isE = true;
 				i = i + 2;
@@ -203,7 +218,12 @@ void ScalarConverter::convert(char *input)
 		printImpossible();
 		return;
 	}
-	long double tmp = strtold(input, NULL);
+	double tmp = strtod(input, NULL);
+	if (tmp == HUGE_VAL || tmp == -HUGE_VAL || errno == ERANGE || errno == EDOM || errno == EILSEQ)
+	{
+		printImpossible();
+		return;
+	}
 	if (str.find('.') == std::string::npos)
 	{
 		if (tmp > INT_MAX || tmp < INT_MIN)
@@ -215,22 +235,17 @@ void ScalarConverter::convert(char *input)
 		}
 		return;
 	}
-	if (str.find('f') == std::string::npos)
+	if (str.find('f') != std::string::npos)
 	{
-		if (tmp > DBL_MAX || tmp < -DBL_MAX)
+		if (tmp > FLT_MAX || tmp < -FLT_MAX)
 			printImpossible();
 		else
 		{
-			pDo = strtod(input, NULL);
-			printDouble(pDo);
+			pFl = strtof(input, NULL);
+			printFloat(pFl);
 		}
 		return;
 	}
-	if (tmp > FLT_MAX || tmp < -FLT_MAX)
-		printImpossible();
-	else
-	{
-		pFl = strtof(input, NULL);
-		printFloat(pFl);
-	}
+	pDo = strtod(input, NULL);
+	printDouble(pDo);
 }
