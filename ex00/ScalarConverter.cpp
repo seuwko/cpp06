@@ -203,7 +203,7 @@ void ScalarConverter::convert(char *input)
 		printImpossible();
 		return;
 	}
-	double tmp = strtold(input, NULL);
+	long double tmp = strtold(input, NULL);
 	if (str.find('.') == std::string::npos)
 	{
 		if (tmp > INT_MAX || tmp < INT_MIN)
@@ -230,7 +230,7 @@ void ScalarConverter::convert(char *input)
 		printImpossible();
 	else
 	{
-		pFl = strtod(input, NULL);
+		pFl = strtof(input, NULL);
 		printFloat(pFl);
 	}
 }
